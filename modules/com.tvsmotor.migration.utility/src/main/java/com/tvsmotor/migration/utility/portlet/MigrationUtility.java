@@ -116,7 +116,7 @@ public class MigrationUtility extends MVCPortlet {
     			log.info("Generated XML: " + contentXml);
     			// Resolve DDM structure by name (from config mapping)
     			String componentName = sitecoreComponent.getString("componentName");
-    			if("TvsCare".equalsIgnoreCase(componentName)) {
+    			if("DiscoverService".equalsIgnoreCase(componentName)) {
     				Locale locale = LocaleUtil.fromLanguageId("en_US");
     				Map<Locale, String> titleMap = new HashMap<>();
     				titleMap.put(locale, componentName);
@@ -147,8 +147,6 @@ public class MigrationUtility extends MVCPortlet {
     							"DDM structure with name '" + structureName + "' not found for group " + groupId);
     				}
     				
-    				// Use numeric structureId (as you requested)
-    				// long ddmStructureId = ddmStructure.getStructureId();
     				long ddmStructureId = Long.valueOf(ddmStructure.getStructureId());
     				String ddmTemplateKey = null; // set if you have a template
     				

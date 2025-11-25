@@ -106,7 +106,7 @@ public class WebContentXMLBuilder {
 
 		// Title field — update the name if your structure uses a different field name
 
-		if("TvsCare".equalsIgnoreCase(componentName)) {
+		if("DiscoverService".equalsIgnoreCase(componentName)) {
 			JSONObject sitecoreFields = sitecoreComponent.getJSONObject("fields");
 
 			JSONArray sitecoreItems = sitecoreFields.getJSONArray(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("sitecoreFieldsArrName"));
@@ -152,100 +152,21 @@ public class WebContentXMLBuilder {
 						case "image":
 							if(sitecoreItem.has(sitecoreFieldName)) {
 								String url = sitecoreItem.getJSONObject(sitecoreFieldName).getJSONObject("value").has("src")? "https://www.tvsmotor.com" + sitecoreItem.getJSONObject(sitecoreFieldName).getJSONObject("value").getString("src"):"";
-								ServiceContext serviceContext = ServiceContextFactory.getInstance(actionRequest);
-								Folder pageTypeFolder = createFolder(pageType, 0l, themeDisplay, serviceContext, groupId);
-								Folder componentFolder = createFolder(componentName, pageTypeFolder.getFolderId(), themeDisplay,
-										serviceContext, groupId);
-								log.info(
-										"componentFolder -- " + componentFolder.getFolderId() + " -- " + componentFolder.getName());
-								
-								FileEntry fileEntry = WebContentXMLBuilder.uploadFromUrl(userId, groupId,
-										componentFolder.getFolderId(), url, dlAppLocalService);
-								String previewURL = DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, "");
-								Group group = GroupLocalServiceUtil.getGroup(groupId);
-								int dotIndex = fileEntry.getFileName().lastIndexOf('.');
-								String title = (dotIndex > 0) ? fileEntry.getFileName().substring(0, dotIndex) : fileEntry.getFileName();
-								previewURL=
-									    themeDisplay.getPortalURL() +
-									    themeDisplay.getPathContext() +
-									    "/documents/d" +
-									    group.getFriendlyURL() + "/" +
-									    title;// +
-									    //"?download=true";
-								// Build a small JSON for image metadata (Liferay often stores image field as
-								// JSON)
-								
-								JSONObject imageMeta = JSONFactoryUtil.createJSONObject();
-								imageMeta.put("url", previewURL);
-								imageMeta.put("title", fileEntry.getTitle());
-								imageMeta.put("type", "document");
-								imageMeta.put("fileEntryId", fileEntry.getFileEntryId());
-								imageMeta.put("uuid", fileEntry.getUuid());
-								imageMeta.put("description", "");
-								imageMeta.put("groupId", groupId);
-								imageMeta.put("alt", "");
-								imageMeta.put("name", fileEntry.getFileName());
-								//imageMeta.put("resourcePrimKey", fileEntry.getPrimaryKey());
-								try {
-									dlAppLocalService.getFileEntry(fileEntry.getFileEntryId());
-									log.error("fileEntry.getFileEntryId() -- " + fileEntry.getFileEntryId() + " exists");
-								} catch (Exception e) {
-									log.error("fileEntry.getFileEntryId() -- " + fileEntry.getFileEntryId() + " doesnot exists");
-								}
-								
-								xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"image\" field-reference=\""
-										+ fieldStructureName + "\" ").append("index-type=\"text\" instance-id=\"")
-								.append(UUID.randomUUID().toString()).append("\">")
-								.append("<dynamic-content language-id=\"en_US\"><![CDATA[")
-								.append(escapeCdata(imageMeta.toString())).append("]]></dynamic-content>")
-								.append("</dynamic-element>");
+								generateXMLForImageField(userId, groupId, dlAppLocalService, pageType, themeDisplay,
+										actionRequest, xml, componentName, fieldStructureName, url);
 							} else {
-
-								JSONObject imageMeta = JSONFactoryUtil.createJSONObject();
-								imageMeta.put("url", "");
-								imageMeta.put("title", "");
-								imageMeta.put("description", "");
-
-								xml.append("<dynamic-element name=\"" + fieldStructureName
-										+ "\" type=\"image\" field-reference=\"" + fieldStructureName + "\" ")
-										.append("index-type=\"text\" instance-id=\"").append(UUID.randomUUID().toString())
-										.append("\">").append("<dynamic-content language-id=\"en_US\"><![CDATA[")
-										.append(escapeCdata(imageMeta.toString())).append("]]></dynamic-content>")
-										.append("</dynamic-element>");
-								 
-								/*
-								 * xml.append("<dynamic-element name=\"" + fieldStructureName +
-								 * "\" type=\"image\" field-reference=\"" + fieldStructureName +
-								 * "\" ").append("index-type=\"text\" instance-id=\"")
-								 * .append(UUID.randomUUID().toString()).append("\"/>");
-								 */
+								generateXMLForBlankImageField(xml, fieldStructureName);
 							}
 							break;
 						case "htmlText":
-							String htmlText = sitecoreItem.getJSONObject(sitecoreFieldName).getString("value");
-							xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
-									+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
-							.append(UUID.randomUUID().toString()).append("\">")
-							.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(htmlText))
-							.append("]]></dynamic-content>").append("</dynamic-element>");
+							generateXMLForHTMLTextField(xml, sitecoreItem, fieldStructureName, sitecoreFieldName);
 							break;
-							
 						case "text":
-							String text = sitecoreItem.getString(sitecoreFieldName);
-							xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
-									+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
-							.append(UUID.randomUUID().toString()).append("\">")
-							.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(text))
-							.append("]]></dynamic-content>").append("</dynamic-element>");
+							generateXMLForTextField(xml, sitecoreItem, fieldStructureName, sitecoreFieldName);
 							break;
 						
 						case "link":
-							String linkUrl = sitecoreItem.getJSONObject(sitecoreFieldName).getJSONObject("value").getString("href");
-							xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
-									+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
-							.append(UUID.randomUUID().toString()).append("\">")
-							.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(linkUrl))
-							.append("]]></dynamic-content>").append("</dynamic-element>");
+							generateXMLForLinkField(xml, sitecoreItem, fieldStructureName, sitecoreFieldName);
 							break;
 						}
 				}
@@ -258,6 +179,110 @@ public class WebContentXMLBuilder {
 		}
 		xml.append("</root>");
 		return xml.toString();
+	}
+
+	private static void generateXMLForLinkField(StringBuilder xml, JSONObject sitecoreItem, String fieldStructureName,
+			String sitecoreFieldName) {
+		String linkUrl = sitecoreItem.getJSONObject(sitecoreFieldName).getJSONObject("value").getString("href");
+		xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
+				+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
+		.append(UUID.randomUUID().toString()).append("\">")
+		.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(linkUrl))
+		.append("]]></dynamic-content>").append("</dynamic-element>");
+	}
+
+	private static void generateXMLForTextField(StringBuilder xml, JSONObject sitecoreItem, String fieldStructureName,
+			String sitecoreFieldName) {
+		String text = sitecoreItem.getString(sitecoreFieldName);
+		xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
+				+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
+		.append(UUID.randomUUID().toString()).append("\">")
+		.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(text))
+		.append("]]></dynamic-content>").append("</dynamic-element>");
+	}
+
+	private static void generateXMLForHTMLTextField(StringBuilder xml, JSONObject sitecoreItem,
+			String fieldStructureName, String sitecoreFieldName) {
+		String htmlText = sitecoreItem.getJSONObject(sitecoreFieldName).getString("value");
+		xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
+				+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
+		.append(UUID.randomUUID().toString()).append("\">")
+		.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(htmlText))
+		.append("]]></dynamic-content>").append("</dynamic-element>");
+	}
+
+	private static void generateXMLForBlankImageField(StringBuilder xml, String fieldStructureName) {
+		JSONObject imageMeta = JSONFactoryUtil.createJSONObject();
+		imageMeta.put("url", "");
+		imageMeta.put("title", "");
+		imageMeta.put("description", "");
+
+		xml.append("<dynamic-element name=\"" + fieldStructureName
+				+ "\" type=\"image\" field-reference=\"" + fieldStructureName + "\" ")
+				.append("index-type=\"text\" instance-id=\"").append(UUID.randomUUID().toString())
+				.append("\">").append("<dynamic-content language-id=\"en_US\"><![CDATA[")
+				.append(escapeCdata(imageMeta.toString())).append("]]></dynamic-content>")
+				.append("</dynamic-element>");
+		 
+		/*
+		 * xml.append("<dynamic-element name=\"" + fieldStructureName +
+		 * "\" type=\"image\" field-reference=\"" + fieldStructureName +
+		 * "\" ").append("index-type=\"text\" instance-id=\"")
+		 * .append(UUID.randomUUID().toString()).append("\"/>");
+		 */
+	}
+
+	private static void generateXMLForImageField(long userId, long groupId, DLAppLocalService dlAppLocalService,
+			String pageType, ThemeDisplay themeDisplay, ActionRequest actionRequest, StringBuilder xml,
+			String componentName, String fieldStructureName, String url)
+			throws PortalException, Exception, IOException {
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(actionRequest);
+		Folder pageTypeFolder = createFolder(pageType, 0l, themeDisplay, serviceContext, groupId);
+		Folder componentFolder = createFolder(componentName, pageTypeFolder.getFolderId(), themeDisplay,
+				serviceContext, groupId);
+		log.info(
+				"componentFolder -- " + componentFolder.getFolderId() + " -- " + componentFolder.getName());
+		
+		FileEntry fileEntry = WebContentXMLBuilder.uploadFromUrl(userId, groupId,
+				componentFolder.getFolderId(), url, dlAppLocalService);
+		String previewURL = DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, "");
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+		int dotIndex = fileEntry.getFileName().lastIndexOf('.');
+		String title = (dotIndex > 0) ? fileEntry.getFileName().substring(0, dotIndex) : fileEntry.getFileName();
+		previewURL=
+			    themeDisplay.getPortalURL() +
+			    themeDisplay.getPathContext() +
+			    "/documents/d" +
+			    group.getFriendlyURL() + "/" +
+			    title;// +
+			    //"?download=true";
+		// Build a small JSON for image metadata (Liferay often stores image field as
+		// JSON)
+		
+		JSONObject imageMeta = JSONFactoryUtil.createJSONObject();
+		imageMeta.put("url", previewURL);
+		imageMeta.put("title", fileEntry.getTitle());
+		imageMeta.put("type", "document");
+		imageMeta.put("fileEntryId", fileEntry.getFileEntryId());
+		imageMeta.put("uuid", fileEntry.getUuid());
+		imageMeta.put("description", "");
+		imageMeta.put("groupId", groupId);
+		imageMeta.put("alt", "");
+		imageMeta.put("name", fileEntry.getFileName());
+		//imageMeta.put("resourcePrimKey", fileEntry.getPrimaryKey());
+		try {
+			dlAppLocalService.getFileEntry(fileEntry.getFileEntryId());
+			log.error("fileEntry.getFileEntryId() -- " + fileEntry.getFileEntryId() + " exists");
+		} catch (Exception e) {
+			log.error("fileEntry.getFileEntryId() -- " + fileEntry.getFileEntryId() + " doesnot exists");
+		}
+		
+		xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"image\" field-reference=\""
+				+ fieldStructureName + "\" ").append("index-type=\"text\" instance-id=\"")
+		.append(UUID.randomUUID().toString()).append("\">")
+		.append("<dynamic-content language-id=\"en_US\"><![CDATA[")
+		.append(escapeCdata(imageMeta.toString())).append("]]></dynamic-content>")
+		.append("</dynamic-element>");
 	}
 
 	/**
