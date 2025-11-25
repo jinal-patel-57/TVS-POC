@@ -116,7 +116,7 @@ public class MigrationUtility extends MVCPortlet {
     			log.info("Generated XML: " + contentXml);
     			// Resolve DDM structure by name (from config mapping)
     			String componentName = sitecoreComponent.getString("componentName");
-    			if("HeroBanner".equalsIgnoreCase(componentName)) {
+    			if("TvsCare".equalsIgnoreCase(componentName)) {
     				Locale locale = LocaleUtil.fromLanguageId("en_US");
     				Map<Locale, String> titleMap = new HashMap<>();
     				titleMap.put(locale, componentName);

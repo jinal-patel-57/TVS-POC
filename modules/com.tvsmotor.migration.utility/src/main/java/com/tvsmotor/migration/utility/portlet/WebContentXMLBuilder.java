@@ -106,10 +106,10 @@ public class WebContentXMLBuilder {
 
 		// Title field — update the name if your structure uses a different field name
 
-		if("HeroBanner".equalsIgnoreCase(componentName)) {
+		if("TvsCare".equalsIgnoreCase(componentName)) {
 			JSONObject sitecoreFields = sitecoreComponent.getJSONObject("fields");
 
-			JSONArray sitecoreItems = sitecoreFields.getJSONArray("Banners");
+			JSONArray sitecoreItems = sitecoreFields.getJSONArray(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("sitecoreFieldsArrName"));
 			
 			JSONArray configItems = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
 					.getJSONArray("items");
@@ -221,12 +221,21 @@ public class WebContentXMLBuilder {
 								 */
 							}
 							break;
-						case "text":
-							String link = sitecoreItem.getString(sitecoreFieldName);
+						case "htmlText":
+							String htmlText = sitecoreItem.getJSONObject(sitecoreFieldName).getString("value");
 							xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
 									+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
 							.append(UUID.randomUUID().toString()).append("\">")
-							.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(link))
+							.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(htmlText))
+							.append("]]></dynamic-content>").append("</dynamic-element>");
+							break;
+							
+						case "text":
+							String text = sitecoreItem.getString(sitecoreFieldName);
+							xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
+									+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
+							.append(UUID.randomUUID().toString()).append("\">")
+							.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(text))
 							.append("]]></dynamic-content>").append("</dynamic-element>");
 							break;
 						
