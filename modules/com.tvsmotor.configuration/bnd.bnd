@@ -1,0 +1,7 @@
+Bundle-Name: com.tvsmotor.configuration
+Bundle-SymbolicName: com.tvsmotor.configuration
+Bundle-Version: 1.0.0
+Export-Package: com.tvsmotor.configuration.*
+Provide-Capability:\
+	liferay.language.resources;\
+		resource.bundle.base.name="content.Language"

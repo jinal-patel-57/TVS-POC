@@ -1,0 +1,13 @@
+Bundle-Name: com.tvsmotor.migration.utility
+Bundle-SymbolicName: com.tvsmotor.migration.utility
+Bundle-Version: 1.0.0
+Export-Package: com.tvsmotor.migration.utility.constants
+Import-Package: \
+    com.liferay.dynamic.data.mapping.util,\
+    com.liferay.dynamic.data.mapping.storage,\
+    com.liferay.dynamic.data.mapping.model,\
+    com.liferay.portal.kernel.*, \
+    *
+Provide-Capability:\
+	liferay.language.resources;\
+		resource.bundle.base.name="content.Language"
