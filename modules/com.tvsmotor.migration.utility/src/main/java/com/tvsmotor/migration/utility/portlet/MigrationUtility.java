@@ -144,11 +144,8 @@ public class MigrationUtility extends MVCPortlet {
         				Map<Locale, String> descriptionMap = new HashMap<>();
         				descriptionMap.put(locale, componentName);
         				
-        				
         				serviceContext.setUserId(userId);
         				serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
-        				
-        				
         				
         				String structureName = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("structureName");
         				
@@ -179,21 +176,15 @@ public class MigrationUtility extends MVCPortlet {
         				JournalArticle article = journalArticleLocalService.addArticle(articleERC, userId, groupId, folderId,
         						titleMap, descriptionMap, contentXml, ddmStructureId, ddmTemplateKey, serviceContext);
         				
-        				
         				log.info("Created JournalArticle: articleId=" + article.getArticleId() + ", resourcePrimKey="
         						+ article.getResourcePrimKey());
-    			
     			}
     			
             }
 		} catch (NoSuchMethodError nsme) {
 			nsme.printStackTrace();
-			throw new PortletException(
-					"addArticle overload not available in this Liferay build. Please check available signatures.",
-					nsme);
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new PortletException(e);
 		}
 	}
 
@@ -213,14 +204,12 @@ public class MigrationUtility extends MVCPortlet {
 				String name = structure.getName(locale);
 				long structureGroupId = structure.getGroupId();
 				if (name != null && name.equals(structureName) && (structureGroupId==groupId)) {
-					
 					return structure;
 				}
 			} catch (Exception e) {
-				// ignore locales not present on structure
+				e.printStackTrace();
 			}
 		}
-
 		return null;
 	}
 }

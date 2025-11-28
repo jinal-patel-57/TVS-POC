@@ -8,7 +8,7 @@
 
 	<form action="${executeMigrationURL}" method="post"
 		enctype="multipart/form-data"
-		class="p-4 border rounded shadow-sm bg-white">
+		class="p-4 border rounded shadow-sm bg-white" id="migrationUtilityFM">
 
 		<div class="mb-4">
 			<label for="<portlet:namespace/>pageType" class="form-label fw-bold">
@@ -29,9 +29,20 @@
 		</div>
 
 		<div class="text-center">
-			<button type="submit" class="btn btn-primary px-4 py-2">
+			<button type="submit" id="submitBtn" class="btn btn-primary px-4 py-2">
 				Execute</button>
 		</div>
 
 	</form>
 </div>
+
+<script type="text/javascript">
+
+$("#migrationUtilityFM").on("submit", function () {
+    let btn = $("#submitBtn");
+    btn.prop("disabled", true);
+});
+
+</script>
+
+
