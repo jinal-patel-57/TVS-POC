@@ -129,57 +129,61 @@ public class MigrationUtility extends MVCPortlet {
             for (int i = 0; i < sitecoreComponents.length(); i++) {
                 JSONObject sitecoreComponent = sitecoreComponents.getJSONObject(i);
                 //String componentName = sitecoreComponent.getString("component", "");
-                
-                // Build XML content using WebContentXMLBuilder
-    			String contentXml = WebContentXMLBuilder.buildFromInput(userId, groupId, sitecoreComponent, dlAppLocalService, pageType, themeDisplay, actionRequest);
-    			log.info("Generated XML: " + contentXml);
-    			// Resolve DDM structure by name (from config mapping)
-    			String componentName = sitecoreComponent.getString("componentName");
-    				Locale locale = LocaleUtil.fromLanguageId("en_US");
-    				Map<Locale, String> titleMap = new HashMap<>();
-    				titleMap.put(locale, componentName);
+                String componentName = sitecoreComponent.getString("componentName");
+                if(Validator.isNotNull(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName))) {
     				
-    				Map<Locale, String> descriptionMap = new HashMap<>();
-    				descriptionMap.put(locale, componentName);
-    				
-    				
-    				serviceContext.setUserId(userId);
-    				serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
-    				
-    				
-    				
-    				String structureName = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("structureName");
-    				
-    				if (structureName == null || structureName.isEmpty()) {
-    					throw new IllegalArgumentException("structureName not found in mapping for pageType: " + pageType);
-    				}
-    				
-    				// Find structure by name among all structures
-    				DDMStructure ddmStructure = getStructureByName(groupId, structureName, LocaleUtil.getDefault());
-    				
-    				if (ddmStructure == null) {
-    					throw new IllegalStateException(
-    							"DDM structure with name '" + structureName + "' not found for group " + groupId);
-    				}
-    				
-    				long ddmStructureId = Long.valueOf(ddmStructure.getStructureId());
-    				String ddmTemplateKey = null; // set if you have a template
-    				
-    				// Generate a unique articleId string required by this addArticle overload
-    				DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneId.of("UTC"));
-    				String ts = fmt.format(Instant.now());
-    				String articleERC = "tvsmotor-" + ts;
-    				
-    				long folderId = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getLong("folderId");
-    				
-    				// Use the correct addArticle overload: articleId first, then userId, groupId,
-    				// folderId, ...
-    				JournalArticle article = journalArticleLocalService.addArticle(articleERC, userId, groupId, folderId,
-    						titleMap, descriptionMap, contentXml, ddmStructureId, ddmTemplateKey, serviceContext);
-    				
-    				
-    				log.info("Created JournalArticle: articleId=" + article.getArticleId() + ", resourcePrimKey="
-    						+ article.getResourcePrimKey());
+                	// Build XML content using WebContentXMLBuilder
+        			String contentXml = WebContentXMLBuilder.buildFromInput(userId, groupId, sitecoreComponent, dlAppLocalService, pageType, themeDisplay, actionRequest);
+        			log.info("Generated XML: " + contentXml);
+        			// Resolve DDM structure by name (from config mapping)
+        			
+        				Locale locale = LocaleUtil.fromLanguageId("en_US");
+        				Map<Locale, String> titleMap = new HashMap<>();
+        				titleMap.put(locale, componentName);
+        				
+        				Map<Locale, String> descriptionMap = new HashMap<>();
+        				descriptionMap.put(locale, componentName);
+        				
+        				
+        				serviceContext.setUserId(userId);
+        				serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
+        				
+        				
+        				
+        				String structureName = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("structureName");
+        				
+        				if (structureName == null || structureName.isEmpty()) {
+        					throw new IllegalArgumentException("structureName not found in mapping for pageType: " + pageType);
+        				}
+        				
+        				// Find structure by name among all structures
+        				DDMStructure ddmStructure = getStructureByName(groupId, structureName, LocaleUtil.getDefault());
+        				
+        				if (ddmStructure == null) {
+        					throw new IllegalStateException(
+        							"DDM structure with name '" + structureName + "' not found for group " + groupId);
+        				}
+        				
+        				long ddmStructureId = Long.valueOf(ddmStructure.getStructureId());
+        				String ddmTemplateKey = null; // set if you have a template
+        				
+        				// Generate a unique articleId string required by this addArticle overload
+        				DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneId.of("UTC"));
+        				String ts = fmt.format(Instant.now());
+        				String articleERC = "tvsmotor-" + ts;
+        				
+        				long folderId = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getLong("folderId");
+        				
+        				// Use the correct addArticle overload: articleId first, then userId, groupId,
+        				// folderId, ...
+        				JournalArticle article = journalArticleLocalService.addArticle(articleERC, userId, groupId, folderId,
+        						titleMap, descriptionMap, contentXml, ddmStructureId, ddmTemplateKey, serviceContext);
+        				
+        				
+        				log.info("Created JournalArticle: articleId=" + article.getArticleId() + ", resourcePrimKey="
+        						+ article.getResourcePrimKey());
+    			
+    			}
     			
             }
 		} catch (NoSuchMethodError nsme) {
