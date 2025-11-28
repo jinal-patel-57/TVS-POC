@@ -5,17 +5,21 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -70,6 +74,39 @@ public class MigrationUtility extends MVCPortlet {
 	public void render(RenderRequest renderRequest, RenderResponse renderResponse)
 			throws IOException, PortletException {
 
+		ThemeDisplay themeDisplay = (ThemeDisplay) renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
+		
+		ServiceContext serviceContext = null;
+		try {
+			serviceContext = ServiceContextFactory.getInstance(Layout.class.getName(), renderRequest);
+			serviceContext.setScopeGroupId(20117l);
+		} catch (PortalException e) {
+			e.printStackTrace();
+		}
+		
+        
+
+        String normalizedFriendlyURL = FriendlyURLNormalizerUtil.normalize("test");
+
+        try {
+			Layout layout = LayoutLocalServiceUtil.addLayout("",
+			    themeDisplay.getUserId(),
+			    20117l,
+			    false, // public layout
+			    0, // parentLayoutId
+			    "test", // name
+			    "test", // title
+			    "", // description
+			    "content", // type
+			    false, false,
+			    "/" + normalizedFriendlyURL, // friendly URL
+			    serviceContext
+			);
+		} catch (PortalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		try {
 			if (Validator.isNotNull(TvsMotorConfigurationAction.getMigrationMapping())) {
 				JSONObject mainMappingJson = JSONFactoryUtil
@@ -116,7 +153,6 @@ public class MigrationUtility extends MVCPortlet {
     			log.info("Generated XML: " + contentXml);
     			// Resolve DDM structure by name (from config mapping)
     			String componentName = sitecoreComponent.getString("componentName");
-    			if("DiscoverService".equalsIgnoreCase(componentName)) {
     				Locale locale = LocaleUtil.fromLanguageId("en_US");
     				Map<Locale, String> titleMap = new HashMap<>();
     				titleMap.put(locale, componentName);
@@ -165,9 +201,7 @@ public class MigrationUtility extends MVCPortlet {
     				
     				log.info("Created JournalArticle: articleId=" + article.getArticleId() + ", resourcePrimKey="
     						+ article.getResourcePrimKey());
-    			} else {
-    				log.info("not hero banner -- " + componentName);
-    			}
+    			
             }
 		} catch (NoSuchMethodError nsme) {
 			nsme.printStackTrace();

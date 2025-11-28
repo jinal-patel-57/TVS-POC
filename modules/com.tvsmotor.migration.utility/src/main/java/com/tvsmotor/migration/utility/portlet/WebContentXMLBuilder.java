@@ -4,7 +4,6 @@ import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.util.DLUtil;
-import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -21,6 +20,7 @@ import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.tvsmotor.configuration.action.TvsMotorConfigurationAction;
 
 import java.io.ByteArrayInputStream;
@@ -106,13 +106,21 @@ public class WebContentXMLBuilder {
 
 		// Title field — update the name if your structure uses a different field name
 
-		if("DiscoverService".equalsIgnoreCase(componentName)) {
+			log.info("in tips -- ");
 			JSONObject sitecoreFields = sitecoreComponent.getJSONObject("fields");
-
-			JSONArray sitecoreItems = sitecoreFields.getJSONArray(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("sitecoreFieldsArrName"));
+			JSONArray sitecoreItems = null;
+			if(Validator.isNotNull(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)) && configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).has("sitecoreFieldsArrName")) {
+				
+				sitecoreItems = sitecoreFields.getJSONArray(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).getString("sitecoreFieldsArrName"));
 			
-			JSONArray configItems = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
-					.getJSONArray("items");
+			}
+			
+			JSONArray configItems = null;
+			
+			if(Validator.isNotNull(configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)) && configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName).has("items")) {
+				configItems = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
+						.getJSONArray("items");
+			}
 			
 			JSONObject configComponentJson = configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName);
 			
@@ -121,33 +129,69 @@ public class WebContentXMLBuilder {
 				log.info("configComponentMainFields -- " + configComponentMainFields);
 				for(String key: configComponentMainFields.keySet()) {
 					log.info("configComponentMainFields keys -- " + key);
-					xml.append("<dynamic-element name=\""+configComponentMainFields.getString(key)+"\" type=\"text\" field-reference=\""+key+"\" ")
-					.append("index-type=\"\" instance-id=\"").append(UUID.randomUUID().toString()).append("\">")
-					.append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(escapeCdata(sitecoreFields.getString(key)))
-					.append("]]></dynamic-content>").append("</dynamic-element>");
+					JSONObject mainFieldsJson = configComponentMainFields.getJSONObject(key);
+					String mainFieldType = mainFieldsJson.getString("fieldType");
+					String mainFieldStructureName = mainFieldsJson.getString("fieldStructureName");
+					
+					switch (mainFieldType) {
+					case "image":
+						if(sitecoreFields.has(key)) {
+							String url = sitecoreFields.getJSONObject(key).getJSONObject("value").has("src")? "https://www.tvsmotor.com" + sitecoreFields.getJSONObject(key).getJSONObject("value").getString("src"):"";
+							if(Validator.isNotNull(url) && !url.isBlank()) {
+								generateXMLForImageField(userId, groupId, dlAppLocalService, pageType, themeDisplay,
+										actionRequest, xml, componentName, mainFieldStructureName, url);
+							} else {
+								generateXMLForBlankImageField(xml, mainFieldStructureName);
+							}
+						} else {
+							generateXMLForBlankImageField(xml, mainFieldStructureName);
+						}
+						break;
+					case "htmlText":
+						generateXMLForHTMLTextField(xml, sitecoreFields, mainFieldStructureName, key);
+						break;
+					case "text":
+						generateXMLForTextField(xml, sitecoreFields, mainFieldStructureName, key);
+						break;
+						
+					case "link":
+						generateXMLForLinkField(xml, sitecoreFields, mainFieldStructureName, key);
+						break;
+					}
+					
+					/*
+					 * xml.append("<dynamic-element name=\""+configComponentMainFields.getString(key
+					 * )+"\" type=\"text\" field-reference=\""+key+"\" ")
+					 * .append("index-type=\"\" instance-id=\"").append(UUID.randomUUID().toString()
+					 * ).append("\">")
+					 * .append("<dynamic-content language-id=\"en_US\"><![CDATA[").append(
+					 * escapeCdata(sitecoreFields.getString(key)))
+					 * .append("]]></dynamic-content>").append("</dynamic-element>");
+					 */
 				}
 				log.info("xml after main fields -- " + xml);
 			}
 
-			for (int j = 0; j < sitecoreItems.length(); j++) {
-				JSONObject sitecoreItem = sitecoreItems.getJSONObject(j).getJSONObject("fields"); // image & link data
-
-				// create fieldset instance id to group child fields
-				String fieldsetId = UUID.randomUUID().toString();
-
-				xml.append("<dynamic-element name=\""+configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
-						.getString("itemsFieldName")+"\" type=\"fieldset\" field-reference=\""+configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
-						.getString("itemsFieldName")+"\" ")
-						.append("repeatable=\"true\" instance-id=\"").append(fieldsetId).append("\">");
-
-				for (int k = 0; k < configItems.length(); k++) {
-					JSONObject configItem = configItems.getJSONObject(k);
-					String fieldType = configItem.getString("fieldType");
-					String fieldStructureReference = configItem.getString("fieldStructureReference");
-					String fieldStructureName = configItem.getString("fieldStructureName");
-
-					String sitecoreFieldName = configItem.getString("sitecoreFieldName");
+			if(Validator.isNotNull(sitecoreItems) && sitecoreItems.length()>0) {
+				for (int j = 0; j < sitecoreItems.length(); j++) {
+					JSONObject sitecoreItem = sitecoreItems.getJSONObject(j).getJSONObject("fields"); // image & link data
 					
+					// create fieldset instance id to group child fields
+					String fieldsetId = UUID.randomUUID().toString();
+					
+					xml.append("<dynamic-element name=\""+configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
+							.getString("itemsFieldName")+"\" type=\"fieldset\" field-reference=\""+configJson.getJSONObject("pages").getJSONObject(pageType).getJSONObject(componentName)
+							.getString("itemsFieldName")+"\" ")
+					.append("repeatable=\"true\" instance-id=\"").append(fieldsetId).append("\">");
+					
+					for (int k = 0; k < configItems.length(); k++) {
+						JSONObject configItem = configItems.getJSONObject(k);
+						String fieldType = configItem.getString("fieldType");
+						String fieldStructureReference = configItem.getString("fieldStructureReference");
+						String fieldStructureName = configItem.getString("fieldStructureName");
+						
+						String sitecoreFieldName = configItem.getString("sitecoreFieldName");
+						
 						switch (fieldType) {
 						case "image":
 							if(sitecoreItem.has(sitecoreFieldName)) {
@@ -164,19 +208,87 @@ public class WebContentXMLBuilder {
 						case "text":
 							generateXMLForTextField(xml, sitecoreItem, fieldStructureName, sitecoreFieldName);
 							break;
-						
+							
 						case "link":
 							generateXMLForLinkField(xml, sitecoreItem, fieldStructureName, sitecoreFieldName);
 							break;
+							
+						case "repeatable":
+							if(configItem.has("repeatableFields")) {
+								String repeatableFieldsetId = UUID.randomUUID().toString();
+								//xml.append("<dynamic-element name=\""+configItem.getString("fieldStructureName")+"\" type=\"fieldset\" field-reference=\""+configItem.getString("fieldStructureName")+"\" ")
+								//.append("instance-id=\"").append(repeatableFieldsetId).append("\">");
+								JSONArray sitecoreRepeatableJsonArray = sitecoreItem.getJSONArray(sitecoreFieldName);
+								
+								if(Validator.isNotNull(sitecoreRepeatableJsonArray) && sitecoreRepeatableJsonArray.length()>0) {
+									for(int m=0; m<sitecoreRepeatableJsonArray.length(); m++) {
+										
+										xml.append("<dynamic-element name=\""+configItem.getString("fieldStructureName")+"\" type=\"fieldset\" field-reference=\""+configItem.getString("fieldStructureName")+"\" ")
+										.append("instance-id=\"").append(fieldsetId).append("\">");
+										JSONObject repeatableSitecoreItem = sitecoreRepeatableJsonArray.getJSONObject(m).getJSONObject("fields");
+										JSONArray repeatableFieldsArray = configItem.getJSONArray("repeatableFields"); 
+										
+										for(int l=0; l<repeatableFieldsArray.length(); l++) {
+											JSONObject repeatableItem = repeatableFieldsArray.getJSONObject(l);
+											String repeatableFieldType = repeatableItem.getString("fieldType");
+											String repeatableFieldStructureReference = repeatableItem.getString("fieldStructureReference");
+											String repeatableFieldStructureName = repeatableItem.getString("fieldStructureName");
+											String repeatableSitecoreFieldName = repeatableItem.getString("sitecoreFieldName");
+											
+											//JSONObject repeatableSitecoreItem = sitecoreRepeatableJsonArray.getJSONObject(m).getJSONObject("fields");
+											switch (repeatableFieldType) {
+											case "image":
+												if(repeatableSitecoreItem.has(repeatableSitecoreFieldName)) {
+													String url = repeatableSitecoreItem.getJSONObject(repeatableSitecoreFieldName).getJSONObject("value").has("src")? "https://www.tvsmotor.com" + repeatableSitecoreItem.getJSONObject(repeatableSitecoreFieldName).getJSONObject("value").getString("src"):"";
+													if(Validator.isNotNull(url) && !url.isBlank()) {
+														generateXMLForImageField(userId, groupId, dlAppLocalService, pageType, themeDisplay,
+																actionRequest, xml, componentName, repeatableFieldStructureName, url);
+													} else {
+														generateXMLForBlankImageField(xml, repeatableFieldStructureName);
+													}
+												} else {
+													generateXMLForBlankImageField(xml, repeatableFieldStructureName);
+												}
+												break;
+											case "htmlText":
+												generateXMLForHTMLTextField(xml, repeatableSitecoreItem, repeatableFieldStructureName, repeatableSitecoreFieldName);
+												break;
+											case "text":
+												generateXMLForTextField(xml, repeatableSitecoreItem, repeatableFieldStructureName, repeatableSitecoreFieldName);
+												break;
+												
+											case "link":
+												generateXMLForLinkField(xml, repeatableSitecoreItem, repeatableFieldStructureName, repeatableSitecoreFieldName);
+												break;
+											}
+											
+										}
+										xml.append("</dynamic-element>");
+									}
+								}
+								
+								
+								
+								
+//								xml.append("</dynamic-element>");
+							}
+							
+							
+							
+							
+							
+							
+							
+							break;
+							
 						}
+					}
+					xml.append("</dynamic-element>"); // close fieldset
 				}
-				xml.append("</dynamic-element>"); // close fieldset
 			}
 
 			
-		} else {
-			log.info("in else not hero banner -- " + componentName);
-		}
+		
 		xml.append("</root>");
 		return xml.toString();
 	}
@@ -203,6 +315,8 @@ public class WebContentXMLBuilder {
 
 	private static void generateXMLForHTMLTextField(StringBuilder xml, JSONObject sitecoreItem,
 			String fieldStructureName, String sitecoreFieldName) {
+		log.info("sitecoreFieldName -- " + sitecoreFieldName);
+		log.info("sitecoreItem -- " + sitecoreItem);
 		String htmlText = sitecoreItem.getJSONObject(sitecoreFieldName).getString("value");
 		xml.append("<dynamic-element name=\"" + fieldStructureName + "\" type=\"text\" field-reference=\""
 				+ fieldStructureName + "\" ").append("index-type=\"keyword\" instance-id=\"")
@@ -336,6 +450,7 @@ public class WebContentXMLBuilder {
 
 		// Download the file bytes
 		byte[] bytes;
+		log.info("url -- " + fileUrl);
 		try (InputStream in = new URL(fileUrl.replace(" ", "%20")).openStream(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
 			byte[] buffer = new byte[8192];
