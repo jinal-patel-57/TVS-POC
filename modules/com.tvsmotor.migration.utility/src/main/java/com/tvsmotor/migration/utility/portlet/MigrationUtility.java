@@ -211,7 +211,9 @@ public class MigrationUtility extends MVCPortlet {
 		for (DDMStructure structure : structures) {
 			try {
 				String name = structure.getName(locale);
-				if (name != null && name.equals(structureName)) {
+				long structureGroupId = structure.getGroupId();
+				if (name != null && name.equals(structureName) && (structureGroupId==groupId)) {
+					
 					return structure;
 				}
 			} catch (Exception e) {
