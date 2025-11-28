@@ -1,10 +1,16 @@
+<%@page import="com.liferay.portal.kernel.util.PortalUtil"%>
 <%@ include file="./init.jsp"%>
-
+<%
+String currentURL = PortalUtil.getCurrentURL(request);
+%>
 <div class="container mt-5">
 
 	<h3 class="mb-4">Migration Utility</h3>
 
-	<portlet:actionURL name="executeMigration" var="executeMigrationURL" />
+	<%-- <portlet:actionURL name="executeMigration" var="executeMigrationURL" /> --%>
+	<portlet:actionURL name="executeMigration" var="executeMigrationURL">
+        <portlet:param name="redirect" value="<%= currentURL %>" />
+    </portlet:actionURL>
 
 	<form action="${executeMigrationURL}" method="post"
 		enctype="multipart/form-data"

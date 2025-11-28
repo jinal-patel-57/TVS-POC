@@ -205,6 +205,10 @@ public class MigrationUtility extends MVCPortlet {
 		            SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE
 		    );
 		}
+		   String redirect = ParamUtil.getString(actionRequest, "redirect");
+		if (Validator.isNotNull(redirect)) {
+	        actionResponse.sendRedirect(redirect);  
+	    }
 	}
 
 	/**
