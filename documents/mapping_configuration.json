@@ -1,0 +1,241 @@
+{
+	"siteId": 20117,
+	"pages": {
+		"services" : {
+			"HeroBanner":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "NewHeroBanner",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"itemsFieldName": "Fieldset22355979",
+				"sitecoreFieldsArrName":"Banners",
+				"items":[{
+					"fieldStructureReference": "bannerImage",
+					"fieldStructureName": "Image33874277",
+					"fieldType": "image",
+					"sitecoreFieldName": "DesktopImage"
+				},
+				{
+					"fieldStructureReference": "link",
+					"fieldStructureName": "Text29433369",
+					"fieldType": "link",
+					"sitecoreFieldName": "Url"
+				}]
+			},
+			"TvsCare":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "StatsGrid",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"itemsFieldName": "Fieldset49802610",
+				"sitecoreFieldsArrName":"Icons",
+				"items":[{
+					"fieldStructureReference": "iconImage",
+					"fieldStructureName": "Image34499224",
+					"fieldType": "image",
+					"sitecoreFieldName": "Image"
+				},
+				{
+					"fieldStructureReference": "label",
+					"fieldStructureName": "Text85491979",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "Description"
+				}]
+			},
+			"CustomerCare":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "StatsGrid",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"itemsFieldName": "Fieldset49802610",
+				"sitecoreFieldsArrName":"Icons",
+				"items":[{
+					"fieldStructureReference": "iconImage",
+					"fieldStructureName": "Image34499224",
+					"fieldType": "image",
+					"sitecoreFieldName": "Image"
+				},
+				{
+					"fieldStructureReference": "label",
+					"fieldStructureName": "Text85491979",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "Description"
+				}]
+			},
+			"DiscoverService":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "Discover All Services",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"sitecoreFieldsArrName":"Card",
+				"mainFieldsMapping":{
+					"Title": {
+						"fieldStructureName":"Text18944140",
+						"fieldType": "text"
+						
+					},
+					"Subtitle": {
+						"fieldStructureName":"Text20263586",
+						"fieldType": "text"
+						
+					}
+				},
+				"itemsFieldName": "Fieldset38627291",
+				"items":[{
+					"fieldStructureReference": "Tab Image",
+					"fieldStructureName": "Image81474231",
+					"fieldType": "image",
+					"sitecoreFieldName": "DesktopImage"
+				},
+				{
+					"fieldStructureReference": "Tab Name",
+					"fieldStructureName": "Text99617862",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "MenuTitle"
+				},
+				{
+					"fieldStructureReference": "Tab Description",
+					"fieldStructureName": "Text89897818",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "Description"
+				},
+				{
+					"fieldStructureReference": "Button Label",
+					"fieldStructureName": "Text46916708",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "ButtonTitle"
+				},
+				{
+					"fieldStructureReference": "Button Link",
+					"fieldStructureName": "Text27833477",
+					"fieldType": "link",
+					"sitecoreFieldName": "ButtonUrl"
+				}
+				]
+			},
+			"UserManual":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "UserManual",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"mainFieldsMapping":{
+					"DesktopImage": {
+						"fieldStructureName":"Image07912916",
+						"fieldType": "image"
+						
+					},
+					"Description": {
+						"fieldStructureName":"Text68918328",
+						"fieldType": "htmlText"
+						
+					},
+					"heading": {
+						"fieldStructureName":"Text34818494",
+						"fieldType": "htmlText"
+						
+					},
+					"ButtonUrl": {
+						"fieldStructureName":"Text12454652",
+						"fieldType": "link"
+						
+					}
+				}
+			},
+			"TvsGenuine":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "UserManual",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"mainFieldsMapping":{
+					"DesktopImage": {
+						"fieldStructureName":"Image07912916",
+						"fieldType": "image"
+						
+					},
+					"Description": {
+						"fieldStructureName":"Text68918328",
+						"fieldType": "htmlText"
+						
+					},
+					"heading": {
+						"fieldStructureName":"Text34818494",
+						"fieldType": "htmlText"
+						
+					},
+					"ButtonUrl": {
+						"fieldStructureName":"Text12454652",
+						"fieldType": "link"
+						
+					}
+				}
+			},
+			"Tips":{
+				"isWebcontent": true,
+				"folderId": 33009,
+				"isBasicWebcontent": false,
+				"structureName": "Tips Structure",
+				"templateName":"TEMPLATENAME",
+				"isRepeatable": true,
+				"sitecoreFieldsArrName":"Tabs",				
+				"itemsFieldName": "Fieldset74673167",
+				"items":[{
+					"fieldStructureReference": "Cards",
+					"fieldStructureName": "Fieldset49323734",
+					"fieldType": "repeatable",
+					"sitecoreFieldName": "Cards",
+					"repeatableFields":[
+						{
+							"fieldStructureReference": "Video Title",
+							"fieldStructureName": "Text49337024",
+							"fieldType": "htmlText",
+							"sitecoreFieldName": "VideoTitle"
+						},
+						{
+							"fieldStructureReference": "Video Url",
+							"fieldStructureName": "Text61335695",
+							"fieldType": "htmlText",
+							"sitecoreFieldName": "VideoUrl"
+						},
+						{
+							"fieldStructureReference": "Video Image",
+							"fieldStructureName": "Image47510575",
+							"fieldType": "image",
+							"sitecoreFieldName": "VideoImage"
+						},
+						{
+							"fieldStructureReference": "Video Text",
+							"fieldStructureName": "Text30531685",
+							"fieldType": "htmlText",
+							"sitecoreFieldName": "VideoText"
+						}
+					]
+				},
+				{
+					"fieldStructureReference": "Tab Title",
+					"fieldStructureName": "Text94264254",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "heading"
+				},
+				{
+					"fieldStructureReference": "Tab Description",
+					"fieldStructureName": "Text89897818",
+					"fieldType": "htmlText",
+					"sitecoreFieldName": "Description"
+				}
+				]
+			}
+		}
+	}
+}
