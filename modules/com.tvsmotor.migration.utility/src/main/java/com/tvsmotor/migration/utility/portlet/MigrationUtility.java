@@ -12,7 +12,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -52,7 +51,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * Migration Utility Portlet - corrected addArticle signature (articleId first)
+ * Migration Utility Portlet
  */
 @Component(property = { "com.liferay.portlet.display-category=category.hidden",
 		"com.liferay.portlet.header-portlet-css=/css/main.css", "com.liferay.portlet.instanceable=false",
@@ -74,39 +73,6 @@ public class MigrationUtility extends MVCPortlet {
 	public void render(RenderRequest renderRequest, RenderResponse renderResponse)
 			throws IOException, PortletException {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay) renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
-		
-		ServiceContext serviceContext = null;
-		try {
-			serviceContext = ServiceContextFactory.getInstance(Layout.class.getName(), renderRequest);
-			serviceContext.setScopeGroupId(20117l);
-		} catch (PortalException e) {
-			e.printStackTrace();
-		}
-		
-        
-
-        String normalizedFriendlyURL = FriendlyURLNormalizerUtil.normalize("test");
-
-        try {
-			Layout layout = LayoutLocalServiceUtil.addLayout("",
-			    themeDisplay.getUserId(),
-			    20117l,
-			    false, // public layout
-			    0, // parentLayoutId
-			    "test", // name
-			    "test", // title
-			    "", // description
-			    "content", // type
-			    false, false,
-			    "/" + normalizedFriendlyURL, // friendly URL
-			    serviceContext
-			);
-		} catch (PortalException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		try {
 			if (Validator.isNotNull(TvsMotorConfigurationAction.getMigrationMapping())) {
 				JSONObject mainMappingJson = JSONFactoryUtil
@@ -132,7 +98,23 @@ public class MigrationUtility extends MVCPortlet {
 			JSONObject configJson = JSONFactoryUtil.createJSONObject(TvsMotorConfigurationAction.getMigrationMapping());
 			long groupId = configJson.getLong("siteId");
 			String pageType = ParamUtil.getString(actionRequest, "pageType");
+			
+			String normalizedFriendlyURL = FriendlyURLNormalizerUtil.normalize(pageType);
 
+			// ServiceContext
+			ServiceContext serviceContext = ServiceContextFactory.getInstance(JournalArticle.class.getName(),
+					actionRequest);
+			serviceContext.setScopeGroupId(groupId);
+			
+	        try {
+				LayoutLocalServiceUtil.addLayout("", themeDisplay.getUserId(), groupId, false, 0, 
+					pageType, pageType, "", "content", false, false, "/" + normalizedFriendlyURL, 
+					serviceContext);
+				log.info("Page created successfully");
+			} catch (PortalException e) {
+				log.error("Page already exists");
+			}
+			
 			UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(actionRequest);
 			File siteCoreJsonFile = uploadRequest.getFile("jsonFile");
 
@@ -160,10 +142,7 @@ public class MigrationUtility extends MVCPortlet {
     				Map<Locale, String> descriptionMap = new HashMap<>();
     				descriptionMap.put(locale, componentName);
     				
-    				// ServiceContext
-    				ServiceContext serviceContext = ServiceContextFactory.getInstance(JournalArticle.class.getName(),
-    						actionRequest);
-    				serviceContext.setScopeGroupId(groupId);
+    				
     				serviceContext.setUserId(userId);
     				serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
     				
