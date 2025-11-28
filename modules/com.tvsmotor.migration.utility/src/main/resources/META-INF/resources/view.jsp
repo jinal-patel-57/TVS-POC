@@ -35,6 +35,9 @@
 
 	</form>
 </div>
+<liferay-ui:success key="sucess-key"  message="sucess-key" />
+<liferay-ui:error embed="<%= false %>" key="unexpected-error-key" message="unexpected-error-key"/>
+ 
 
 <script type="text/javascript">
 

@@ -16,6 +16,8 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
@@ -178,13 +180,30 @@ public class MigrationUtility extends MVCPortlet {
         				
         				log.info("Created JournalArticle: articleId=" + article.getArticleId() + ", resourcePrimKey="
         						+ article.getResourcePrimKey());
+        				
+                        SessionMessages.add(actionRequest, "sucess-key");
     			}
     			
             }
-		} catch (NoSuchMethodError nsme) {
-			nsme.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch (NoSuchMethodError nsme) {
+		    nsme.printStackTrace();
+
+		    SessionErrors.add(actionRequest, "unexpected-error-key");
+
+		    SessionMessages.add(
+		        actionRequest,
+		        PortalUtil.getPortletId(actionRequest) +
+		            SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE
+		    );
+		} catch (Exception e) { 
+		    e.printStackTrace();
+ 
+		    SessionErrors.add(actionRequest, "unexpected-error-key");
+		    SessionMessages.add(
+		        actionRequest,
+		        PortalUtil.getPortletId(actionRequest) +
+		            SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE
+		    );
 		}
 	}
 
