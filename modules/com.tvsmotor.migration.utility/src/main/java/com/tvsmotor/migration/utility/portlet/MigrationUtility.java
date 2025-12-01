@@ -5,6 +5,7 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
+import com.liferay.layout.seo.service.LayoutSEOEntryLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
@@ -12,6 +13,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -101,6 +103,14 @@ public class MigrationUtility extends MVCPortlet {
 			long groupId = configJson.getLong("siteId");
 			String pageType = ParamUtil.getString(actionRequest, "pageType");
 			
+			UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(actionRequest);
+			File siteCoreJsonFile = uploadRequest.getFile("jsonFile");
+
+			String jsonString = Files.readString(siteCoreJsonFile.toPath(), StandardCharsets.UTF_8);
+
+			JSONObject sitecoreJson = JSONFactoryUtil.createJSONObject(jsonString);
+			JSONObject sitecoreRouteFields = sitecoreJson.getJSONObject("sitecore").getJSONObject("route").getJSONObject("fields");
+
 			String normalizedFriendlyURL = FriendlyURLNormalizerUtil.normalize(pageType);
 
 			// ServiceContext
@@ -109,21 +119,39 @@ public class MigrationUtility extends MVCPortlet {
 			serviceContext.setScopeGroupId(groupId);
 			
 	        try {
-				LayoutLocalServiceUtil.addLayout("", themeDisplay.getUserId(), groupId, false, 0, 
+				Layout layout = LayoutLocalServiceUtil.addLayout("", themeDisplay.getUserId(), groupId, false, 0, 
 					pageType, pageType, "", "content", false, false, "/" + normalizedFriendlyURL, 
 					serviceContext);
 				log.info("Page created successfully");
+				
+				Locale defaultLocale = LocaleUtil.getDefault();
+		        Map<Locale, String> titleMap = new HashMap<>();
+		        titleMap.put(defaultLocale, sitecoreRouteFields.getJSONObject("PageTitle").getString("value"));
+
+		        Map<Locale, String> descriptionMap = new HashMap<>();
+		        descriptionMap.put(defaultLocale, sitecoreRouteFields.getJSONObject("MetaDescription").getString("value"));
+		        
+		        Map<Locale, String> ogTitleMap = new HashMap<>();
+		        descriptionMap.put(defaultLocale, sitecoreRouteFields.getJSONObject("OgTitle").getString("value"));
+		        
+		        Map<Locale, String> ogDescriptionMap = new HashMap<>();
+		        descriptionMap.put(defaultLocale, sitecoreRouteFields.getJSONObject("OgDescription").getString("value"));
+
+		        Map<Locale, String> keywordsMap = new HashMap<>();
+		        keywordsMap.put(defaultLocale, sitecoreRouteFields.getJSONObject("MetaKeywords").getString("value"));
+
+		        layout.setDescriptionMap(descriptionMap);
+		        layout.setTitleMap(titleMap);
+		        layout.setKeywordsMap(keywordsMap);
+		        
+		        LayoutLocalServiceUtil.updateLayout(layout);
+		        
+		        LayoutSEOEntryLocalServiceUtil.updateLayoutSEOEntry(layout.getUserId(), groupId, false, layout.getLayoutId(), false, null, true, ogDescriptionMap, null, 0l, true, ogTitleMap, serviceContext);
+		        
 			} catch (PortalException e) {
 				log.error("Page already exists");
 			}
 			
-			UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(actionRequest);
-			File siteCoreJsonFile = uploadRequest.getFile("jsonFile");
-
-			String jsonString = Files.readString(siteCoreJsonFile.toPath(), StandardCharsets.UTF_8);
-
-			JSONObject sitecoreJson = JSONFactoryUtil.createJSONObject(jsonString);
-			// Determine userId and groupId
 			long userId = PortalUtil.getUserId(actionRequest);
 
 			JSONArray sitecoreComponents = sitecoreJson.getJSONObject("sitecore").getJSONObject("route").getJSONObject("placeholders")

@@ -14,7 +14,7 @@ String currentURL = PortalUtil.getCurrentURL(request);
 
 	<form action="${executeMigrationURL}" method="post"
 		enctype="multipart/form-data"
-		class="p-4 border rounded shadow-sm bg-white" id="migrationUtilityFM">
+		class="p-4 border rounded shadow-sm bg-white" id="migrationUtilityFM" data-senna-off="true">
 
 		<div class="mb-4">
 			<label for="<portlet:namespace/>pageType" class="form-label fw-bold">
